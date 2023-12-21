@@ -95,6 +95,12 @@ function sendScheduledWeather() {
                 sendWeatherMessage(chatId)
             }
         })
+    } else if (currentHour === 16 && currentMinute === 30) {
+        Object.keys(chatSubscriptions).forEach((chatId) => {
+            if (chatSubscriptions[chatId]) {
+                sendWeatherMessage(chatId)
+            }
+        })
     }
 }
 function getWindDirectionText(deg) {
@@ -127,8 +133,18 @@ async function sendWeatherMessage(chatId) {
         const windDirection = weather.wind.deg // Направление ветра
         const windDirectionText = getWindDirectionText(windDirection) // Получение текстового представления направления ветра
         const iconCode = weather.weather[0].icon
+        const now = new Date()
+        const time =
+            now.getHours() +
+            ":" +
+            (now.getMinutes() < 10 ? "0" : "") +
+            now.getMinutes()
+        const data =
+            now.getDate() + "." + (now.getMonth() + 1) + "." + now.getFullYear()
 
         const message =
+            `<b>Время ${time}</b>\n\n` +
+            `<b>Дата ${data}</b>\n\n` +
             `<b>Погода в городе ${city}:</b>\n\n` +
             `<b>Температура:</b> ${temperature}°C\n` +
             `<b>Ощущается как:</b> ${feelsLike}°C\n` +
@@ -163,7 +179,8 @@ const UserCommand = (chatId, command) => {
         case "/start":
             if (!(chatId in chatSubscriptions)) {
                 console.log(`Добавлен новый пользыватель id:${chatId}`)
-                message = "Вы подписались на ежедневную рассылку погоды в 6:30."
+                message =
+                    "Вы подписались на ежедневную рассылку погоды в 6:30 и 16:30"
                 chatSubscriptions[chatId] = true
                 saveChatSubscriptions()
             } else {
@@ -236,4 +253,7 @@ bot.onText(/\/help/, (msg) => {
 // Обработка ошибок
 bot.on("polling_error", (error) => {
     console.error("Polling error:", error)
+})
+bot.on("error", (error) => {
+    console.error("Error:", error)
 })
